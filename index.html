@@ -3,24 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Downloader</title>
+    <title>โหลดวิดีโอ MP4 ฟรี (Hosted on Cloudflare)</title>
     <style>
-        body { font-family: sans-serif; text-align: center; margin-top: 50px; background: #f0f2f5; }
-        .box { max-width: 400px; margin: auto; padding: 20px; background: white; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        input { width: 90%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; }
-        button { padding: 10px 20px; background: #e50914; color: white; border: none; border-radius: 5px; cursor: pointer; }
-        #loading { display: none; color: gray; margin-top: 15px; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; text-align: center; margin-top: 10vh; background-color: #f0f2f5; }
+        .container { max-width: 500px; margin: auto; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        input[type="text"] { width: 85%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; }
+        
+        /* สไตล์สำหรับกล่องเลือกความละเอียด */
+        select { width: 90%; padding: 12px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; cursor: pointer; }
+        
+        button { width: 90%; padding: 12px 24px; background-color: #e50914; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.3s; }
+        button:hover { background-color: #b20710; }
+        
+        #status { margin-top: 20px; font-size: 15px; color: #333; font-weight: bold; }
+        #downloadBtn { display: none; margin-top: 20px; padding: 12px 24px; background-color: #28a745; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; }
     </style>
 </head>
 <body>
-    <div class="box">
-        <h2>ดาวน์โหลดวิดีโอ 📥</h2>
-        <form action="/download" method="POST" onsubmit="document.getElementById('loading').style.display='block';">
-            <input type="text" name="url" placeholder="วางลิงก์ YouTube, Facebook, TikTok..." required>
-            <br>
-            <button type="submit">ดาวน์โหลด</button>
-        </form>
-        <p id="loading">⏳ กำลังประมวลผล... โปรดรอสักครู่</p>
+    <div class="container">
+        <h2>📥 โปรแกรมดาวน์โหลดวิดีโอ</h2>
+        <p>รองรับ YouTube, Facebook, TikTok ฯลฯ</p>
+        
+        <!-- 1. ช่องวางลิงก์ -->
+        <input type="text" id="videoUrl" placeholder="วางลิงก์วิดีโอที่นี่..." required>
+        
+        <!-- 2. เมนูเลือกความละเอียด -->
+        <select id="videoQuality">
+            <option value="1080">MP4 - ความละเอียด 1080p (Full HD)</option>
+            <option value="720" selected>MP4 - ความละเอียด 720p (HD)</option>
+            <option value="480">MP4 - ความละเอียด 480p</option>
+        </select>
+
+        <br>
+        <button onclick="downloadVideo()">สร้างลิงก์ดาวน์โหลด</button>
+        
+        <p id="status"></p>
+        <a id="downloadBtn" href="#" target="_blank">⬇️ คลิกที่นี่เพื่อโหลดไฟล์ลงเครื่อง</a>
     </div>
+
+    <script>
+        async function downloadVideo() {
+            const urlInput = document.getElementById("videoUrl").value;
+            const qualityInput = document.getElementById("videoQuality").value; // ดึงค่า 1080 หรือ 720 ที่ผู้ใช้เลือก
+            const statusText = document.getElementById("status");
+            const downloadBtn = document.getElementById("downloadBtn");
+
+            if (!urlInput) {
+                alert("กรุณาวางลิงก์ก่อนครับ!");
+                return;
+            }
+
+            downloadBtn.style.display = "none";
+            statusText.style.color = "#e50914";
+            statusText.innerText = "⏳ กำลังประมวลผลวิดีโอ โปรดรอสักครู่...";
+
+            try {
+                // ส่งคำสั่งไปดึงข้อมูล
+                const response = await fetch("https://co.wuk.sh/api/json", {
+                    method: "POST",
+                    headers: {
+                        "Accept": "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ 
+                        url: urlInput,
+                        vQuality: qualityInput, // กำหนดความละเอียด (1080, 720) ตามที่เลือก
+                        vCodec: "h264",         // บังคับให้เป็น h264 เพื่อให้ไฟล์ออกมาเป็น MP4 (ไม่เป็น WebM)
+                        isAudioOnly: false
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data && data.url) {
+                    statusText.style.color = "green";
+                    statusText.innerText = "✅ ดึงไฟล์สำเร็จแล้ว! (" + qualityInput + "p)";
+                    downloadBtn.href = data.url;
+                    downloadBtn.style.display = "inline-block";
+                } else {
+                    statusText.style.color = "red";
+                    statusText.innerText = "❌ ไม่สามารถดาวน์โหลดได้ (วิดีโออาจติดลิขสิทธิ์ หรือลิงก์ผิด)";
+                }
+            } catch (error) {
+                statusText.style.color = "red";
+                statusText.innerText = "❌ เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์";
+            }
+        }
+    </script>
 </body>
 </html>

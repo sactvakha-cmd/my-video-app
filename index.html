@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Downloader</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; margin-top: 50px; background: #f0f2f5; }
+        .box { max-width: 400px; margin: auto; padding: 20px; background: white; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        input { width: 90%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        button { padding: 10px 20px; background: #e50914; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        #loading { display: none; color: gray; margin-top: 15px; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2>ดาวน์โหลดวิดีโอ 📥</h2>
+        <form action="/download" method="POST" onsubmit="document.getElementById('loading').style.display='block';">
+            <input type="text" name="url" placeholder="วางลิงก์ YouTube, Facebook, TikTok..." required>
+            <br>
+            <button type="submit">ดาวน์โหลด</button>
+        </form>
+        <p id="loading">⏳ กำลังประมวลผล... โปรดรอสักครู่</p>
+    </div>
+</body>
+</html>
